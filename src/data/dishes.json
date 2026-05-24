@@ -1,0 +1,682 @@
+[
+  {
+    "id": "mala-yangguofu",
+    "name": "杨国福麻辣烫",
+    "category": "麻辣烫",
+    "kind": "正餐",
+    "reason": "热汤和菜一锅端，省心又能吃得很满足。",
+    "coupleLine": "今天吃杨国福麻辣烫吧，天气很适合喝一口热汤。"
+  },
+  {
+    "id": "mala-zhangliang",
+    "name": "张亮麻辣烫",
+    "category": "麻辣烫",
+    "kind": "正餐",
+    "reason": "有菜有肉有汤，纠结的时候它最稳。",
+    "coupleLine": "别想了，张亮麻辣烫已经把今天安排明白了。"
+  },
+  {
+    "id": "mala-ban",
+    "name": "麻辣拌",
+    "category": "麻辣烫",
+    "kind": "小吃",
+    "reason": "想吃重口一点，又不想太撑，刚刚好。",
+    "coupleLine": "今天来一份麻辣拌，嘴巴会开心，胃也不会闹脾气。"
+  },
+  {
+    "id": "mala-xiangguo",
+    "name": "麻辣香锅",
+    "category": "麻辣烫",
+    "kind": "正餐",
+    "reason": "香气很顶，适合把今天的小烦恼一起炒走。",
+    "coupleLine": "麻辣香锅一来，今天的选择题就结束了。"
+  },
+  {
+    "id": "rice-huangmenji",
+    "name": "黄焖鸡",
+    "category": "米饭类",
+    "kind": "正餐",
+    "reason": "鸡肉嫩、汤汁香，配米饭特别下饭。",
+    "coupleLine": "黄焖鸡很适合今天，认真吃饭才算乖。"
+  },
+  {
+    "id": "rice-hongshaorou",
+    "name": "红烧肉",
+    "category": "米饭类",
+    "kind": "正餐",
+    "reason": "软糯又治愈，适合辛苦了一整天的你。",
+    "coupleLine": "今天适合吃红烧肉，你最近太辛苦了，要补补。"
+  },
+  {
+    "id": "rice-lajiaochaorou",
+    "name": "辣椒炒肉",
+    "category": "米饭类",
+    "kind": "正餐",
+    "reason": "热热乎乎很开胃，特别适合配一大碗米饭。",
+    "coupleLine": "宝宝今天别饿着，辣椒炒肉配饭最有底气。"
+  },
+  {
+    "id": "rice-yuxiangrsi",
+    "name": "鱼香肉丝",
+    "category": "米饭类",
+    "kind": "正餐",
+    "reason": "酸甜咸香都照顾到，吃起来很安心。",
+    "coupleLine": "鱼香肉丝很稳，适合今天这种只想快点决定的时刻。"
+  },
+  {
+    "id": "rice-baozai",
+    "name": "煲仔饭",
+    "category": "米饭类",
+    "kind": "正餐",
+    "reason": "锅气足，米粒香，特别适合想认真吃饭的时候。",
+    "coupleLine": "煲仔饭一端上来，今天就不许再纠结了。"
+  },
+  {
+    "id": "rice-bowl-beef",
+    "name": "牛肉盖饭",
+    "category": "米饭类",
+    "kind": "正餐",
+    "reason": "有肉有饭，简单直接，效率很高。",
+    "coupleLine": "今天就吃牛肉盖饭，先把肚子照顾好。"
+  },
+  {
+    "id": "rice-pigfeet",
+    "name": "猪脚饭",
+    "category": "米饭类",
+    "kind": "正餐",
+    "reason": "香浓又扎实，适合想吃点有分量的饭。",
+    "coupleLine": "猪脚饭很顶，今天的能量值就靠它了。"
+  },
+  {
+    "id": "rice-charsiu",
+    "name": "叉烧饭",
+    "category": "米饭类",
+    "kind": "正餐",
+    "reason": "甜咸刚好，吃起来很轻松。",
+    "coupleLine": "叉烧饭很乖，适合让宝宝今天少费点脑子。"
+  },
+  {
+    "id": "noodle-lanzhou",
+    "name": "兰州拉面",
+    "category": "面食",
+    "kind": "正餐",
+    "reason": "汤头热乎，面条顺口，想吃热食的时候很合适。",
+    "coupleLine": "兰州拉面很适合今天，先暖胃再慢慢开心。"
+  },
+  {
+    "id": "noodle-chongqing",
+    "name": "重庆小面",
+    "category": "面食",
+    "kind": "小吃",
+    "reason": "香辣过瘾，适合嘴巴想被唤醒的时候。",
+    "coupleLine": "今天来碗重庆小面，心情会变得有点明亮。"
+  },
+  {
+    "id": "noodle-hotdry",
+    "name": "热干面",
+    "category": "面食",
+    "kind": "正餐",
+    "reason": "碳水和芝麻香一起上来，很有安全感。",
+    "coupleLine": "热干面很适合现在，快速把今天的选择困难解决掉。"
+  },
+  {
+    "id": "noodle-sourspicy",
+    "name": "酸辣粉",
+    "category": "面食",
+    "kind": "夜宵",
+    "reason": "酸酸辣辣很开胃，夜里也会想念它。",
+    "coupleLine": "酸辣粉一来，今天晚上就别空着肚子了。"
+  },
+  {
+    "id": "noodle-mixture",
+    "name": "过桥米线",
+    "category": "面食",
+    "kind": "正餐",
+    "reason": "汤暖、料足、口感顺，适合想吃点稳妥的东西。",
+    "coupleLine": "过桥米线很适合今天，先吃饱再说别的。"
+  },
+  {
+    "id": "noodle-cowclaw",
+    "name": "刀削面",
+    "category": "面食",
+    "kind": "正餐",
+    "reason": "筋道又有嚼劲，肚子会被它照顾得很安心。",
+    "coupleLine": "刀削面很稳，今天就让它陪你认真吃顿饭。"
+  },
+  {
+    "id": "snack-shouzhua",
+    "name": "手抓饼",
+    "category": "小吃",
+    "kind": "小吃",
+    "reason": "方便又香，适合不想等太久的时候。",
+    "coupleLine": "手抓饼就是今天的快快乐乐，不许再犹豫。"
+  },
+  {
+    "id": "snack-jianbing",
+    "name": "煎饼果子",
+    "category": "小吃",
+    "kind": "小吃",
+    "reason": "有蛋有脆感，出门路上也能吃得很满足。",
+    "coupleLine": "煎饼果子很适合现在，吃完继续开心。"
+  },
+  {
+    "id": "snack-eggwrap",
+    "name": "鸡蛋灌饼",
+    "category": "小吃",
+    "kind": "小吃",
+    "reason": "热乎、饱腹、很接地气，永远不会错。",
+    "coupleLine": "鸡蛋灌饼是懂你的，今天就它了。"
+  },
+  {
+    "id": "snack-lamian",
+    "name": "烤冷面",
+    "category": "小吃",
+    "kind": "夜宵",
+    "reason": "酸甜辣都能碰到一点，夜里特别馋。",
+    "coupleLine": "烤冷面很有夜宵灵魂，今天别再空肚子了。"
+  },
+  {
+    "id": "snack-stinky",
+    "name": "臭豆腐",
+    "category": "小吃",
+    "kind": "小吃",
+    "reason": "味道一上来就很有存在感，超适合嘴馋的时候。",
+    "coupleLine": "今天就是臭豆腐的主场，宝宝负责开心就好。"
+  },
+  {
+    "id": "snack-octopus",
+    "name": "章鱼小丸子",
+    "category": "小吃",
+    "kind": "小吃",
+    "reason": "一口一个很治愈，适合边走边吃。",
+    "coupleLine": "章鱼小丸子很可爱，今天也要吃得可爱一点。"
+  },
+  {
+    "id": "snack-roujiamo",
+    "name": "肉夹馍",
+    "category": "小吃",
+    "kind": "正餐",
+    "reason": "肉香很足，饿的时候特别顶。",
+    "coupleLine": "肉夹馍很靠谱，今天的胃口就交给它吧。"
+  },
+  {
+    "id": "snack-liangpi",
+    "name": "凉皮",
+    "category": "小吃",
+    "kind": "小吃",
+    "reason": "清爽又开胃，天气热的时候特别舒服。",
+    "coupleLine": "凉皮很适合今天，清清爽爽地吃一顿。"
+  },
+  {
+    "id": "fried-friedchicken",
+    "name": "炸鸡啤酒",
+    "category": "炸鸡",
+    "kind": "炸物",
+    "reason": "炸得酥香，快乐来得很直接。",
+    "coupleLine": "今天可以吃炸鸡，但不许再饿着自己。"
+  },
+  {
+    "id": "fried-kfc",
+    "name": "肯德基",
+    "category": "炸鸡",
+    "kind": "炸物",
+    "reason": "想吃点熟悉的快乐，它总能接住你。",
+    "coupleLine": "肯德基很适合今天，先把满足感安排上。"
+  },
+  {
+    "id": "fried-mcd",
+    "name": "麦当劳",
+    "category": "炸鸡",
+    "kind": "炸物",
+    "reason": "炸物和汉堡都很稳，是不会出错的选择。",
+    "coupleLine": "麦当劳这种快乐，今天就别让它跑掉。"
+  },
+  {
+    "id": "fried-chickenrack",
+    "name": "鸡锁骨",
+    "category": "炸鸡",
+    "kind": "炸物",
+    "reason": "香香脆脆很上头，嘴巴会一直想念它。",
+    "coupleLine": "鸡锁骨很对味，今天就奖励自己一下。"
+  },
+  {
+    "id": "fried-saltchicken",
+    "name": "盐酥鸡",
+    "category": "炸鸡",
+    "kind": "炸物",
+    "reason": "外脆里嫩，适合想吃点轻松快乐的食物。",
+    "coupleLine": "盐酥鸡一上桌，今天就没有烦恼了。"
+  },
+  {
+    "id": "fried-chickenstrip",
+    "name": "炸鸡排",
+    "category": "炸鸡",
+    "kind": "炸物",
+    "reason": "厚实又解馋，适合今天这种想认真吃肉的时候。",
+    "coupleLine": "炸鸡排很懂你，今天要好好吃饭。"
+  },
+  {
+    "id": "bbq-shaokao",
+    "name": "烧烤",
+    "category": "烧烤",
+    "kind": "夜宵",
+    "reason": "烟火气很足，最适合下班后的放松时刻。",
+    "coupleLine": "烧烤一摆出来，今天就像被好好安慰了。"
+  },
+  {
+    "id": "bbq-xiaolongxia",
+    "name": "小龙虾",
+    "category": "烧烤",
+    "kind": "夜宵",
+    "reason": "夜里和朋友、恋人一起吃，氛围感很满。",
+    "coupleLine": "小龙虾适合今晚，吃完记得乖乖补水。"
+  },
+  {
+    "id": "bbq-kaoshan",
+    "name": "烤生蚝",
+    "category": "烧烤",
+    "kind": "夜宵",
+    "reason": "热乎鲜香，想吃点重口夜宵时特别合适。",
+    "coupleLine": "烤生蚝很有夜晚的味道，今天就安排它。"
+  },
+  {
+    "id": "bbq-yangrouchuan",
+    "name": "羊肉串",
+    "category": "烧烤",
+    "kind": "夜宵",
+    "reason": "一串接一串很上头，适合认真放松一下。",
+    "coupleLine": "羊肉串很适合今天，慢慢吃，慢慢开心。"
+  },
+  {
+    "id": "bbq-niurouchuan",
+    "name": "牛肉串",
+    "category": "烧烤",
+    "kind": "夜宵",
+    "reason": "肉香很足，夜宵局里的安全牌。",
+    "coupleLine": "牛肉串一来，今天的嘴巴就不会闹情绪了。"
+  },
+  {
+    "id": "bbq-kaowuhua",
+    "name": "烤五花肉",
+    "category": "烧烤",
+    "kind": "夜宵",
+    "reason": "油脂香和焦香都很到位，特别满足。",
+    "coupleLine": "烤五花肉很会哄人，今天就让它上场。"
+  },
+  {
+    "id": "hotpot-budui",
+    "name": "部队火锅",
+    "category": "火锅",
+    "kind": "正餐",
+    "reason": "热乎、丰富、很有陪伴感，适合两个人一起吃。",
+    "coupleLine": "部队火锅很适合今天，热热闹闹地吃最舒服。"
+  },
+  {
+    "id": "hotpot-shouxi",
+    "name": "寿喜锅",
+    "category": "火锅",
+    "kind": "正餐",
+    "reason": "甜咸暖胃，适合想吃点温柔食物的时候。",
+    "coupleLine": "寿喜锅很温柔，今天就让它照顾你的胃。"
+  },
+  {
+    "id": "hotpot-niurou",
+    "name": "牛油火锅",
+    "category": "火锅",
+    "kind": "正餐",
+    "reason": "香辣过瘾，越吃越有精神。",
+    "coupleLine": "牛油火锅很顶，今天就把烦恼一起涮掉。"
+  },
+  {
+    "id": "hotpot-fanqie",
+    "name": "番茄火锅",
+    "category": "火锅",
+    "kind": "正餐",
+    "reason": "酸甜暖胃，吃起来不会有负担。",
+    "coupleLine": "番茄火锅很适合今天，温温柔柔地吃一顿。"
+  },
+  {
+    "id": "night-congee",
+    "name": "砂锅粥",
+    "category": "夜宵",
+    "kind": "夜宵",
+    "reason": "夜里喝点热粥，肚子会很踏实。",
+    "coupleLine": "砂锅粥很适合现在，别空着肚子熬夜。"
+  },
+  {
+    "id": "night-instnoodle",
+    "name": "泡面加蛋",
+    "category": "便利店速食",
+    "kind": "夜宵",
+    "reason": "简单但很治愈，适合懒懒的夜晚。",
+    "coupleLine": "泡面加蛋也要认真吃，今天不许饿着。"
+  },
+  {
+    "id": "night-odeng",
+    "name": "关东煮",
+    "category": "便利店速食",
+    "kind": "夜宵",
+    "reason": "热汤、热气和一点点小确幸，刚刚好。",
+    "coupleLine": "关东煮很适合今天，轻轻松松就能把自己照顾好。"
+  },
+  {
+    "id": "night-friedrice",
+    "name": "炒饭",
+    "category": "夜宵",
+    "kind": "夜宵",
+    "reason": "一盘就能吃饱，适合深夜的效率餐。",
+    "coupleLine": "炒饭很有安全感，今天别让自己饿太久。"
+  },
+  {
+    "id": "night-friednoodle",
+    "name": "炒粉",
+    "category": "夜宵",
+    "kind": "夜宵",
+    "reason": "香气很足，夜宵局里的老熟人。",
+    "coupleLine": "炒粉最懂夜里嘴馋的感觉，今天就吃它。"
+  },
+  {
+    "id": "night-grilledcold",
+    "name": "烤冷面",
+    "category": "夜宵",
+    "kind": "夜宵",
+    "reason": "夜市气氛一上来，幸福感也会跟着来。",
+    "coupleLine": "烤冷面就是今天的夜宵答案，别再纠结了。"
+  },
+  {
+    "id": "night-grilledwheat",
+    "name": "烤面筋",
+    "category": "夜宵",
+    "kind": "夜宵",
+    "reason": "边走边吃很轻松，夜市氛围很足。",
+    "coupleLine": "烤面筋很适合今天，先吃点快乐再说。"
+  },
+  {
+    "id": "cantonese-changfen",
+    "name": "肠粉",
+    "category": "粤菜",
+    "kind": "正餐",
+    "reason": "细腻顺口，适合想吃清爽一点的时候。",
+    "coupleLine": "肠粉很温柔，今天就让它陪你慢慢吃。"
+  },
+  {
+    "id": "cantonese-charsiu",
+    "name": "烧鸭饭",
+    "category": "粤菜",
+    "kind": "正餐",
+    "reason": "肉香和饭香搭在一起，很容易满足。",
+    "coupleLine": "烧鸭饭很稳，今天的午晚饭就决定它了。"
+  },
+  {
+    "id": "cantonese-baozai",
+    "name": "煲仔饭",
+    "category": "粤菜",
+    "kind": "正餐",
+    "reason": "锅气和酱香都很足，吃起来很踏实。",
+    "coupleLine": "煲仔饭一端上来，今天就不许再空想了。"
+  },
+  {
+    "id": "cantonese-fenmian",
+    "name": "云吞面",
+    "category": "粤菜",
+    "kind": "正餐",
+    "reason": "清爽又有料，适合想简单吃好的时候。",
+    "coupleLine": "云吞面很适合今天，先把自己喂舒服。"
+  },
+  {
+    "id": "cantonese-chaofan",
+    "name": "炒河粉",
+    "category": "粤菜",
+    "kind": "小吃",
+    "reason": "锅气足，口感顺，特别适合赶时间。",
+    "coupleLine": "炒河粉很懂你，今天就吃点接地气的。"
+  },
+  {
+    "id": "hunan-xiaocao",
+    "name": "农家小炒肉",
+    "category": "湘菜",
+    "kind": "正餐",
+    "reason": "香辣下饭，适合胃口被唤醒的时候。",
+    "coupleLine": "农家小炒肉很下饭，今天就别跟自己较劲了。"
+  },
+  {
+    "id": "hunan-lajiaochaorou",
+    "name": "辣椒炒肉",
+    "category": "湘菜",
+    "kind": "正餐",
+    "reason": "香辣热烈，配米饭会特别满足。",
+    "coupleLine": "辣椒炒肉今天很有戏，适合认真吃一顿。"
+  },
+  {
+    "id": "hunan-xiaoniu",
+    "name": "小炒黄牛肉",
+    "category": "湘菜",
+    "kind": "正餐",
+    "reason": "有辣劲也有肉感，吃起来很带劲。",
+    "coupleLine": "小炒黄牛肉很适合今天，先把快乐吃进嘴里。"
+  },
+  {
+    "id": "hunan-duojiao",
+    "name": "剁椒鱼头",
+    "category": "湘菜",
+    "kind": "正餐",
+    "reason": "辣味很有存在感，适合喜欢重口味的时候。",
+    "coupleLine": "剁椒鱼头很热闹，今天就让它来做主角。"
+  },
+  {
+    "id": "hunan-ganguo",
+    "name": "干锅肥肠",
+    "category": "湘菜",
+    "kind": "正餐",
+    "reason": "香气很足，适合认真犒劳自己的时候。",
+    "coupleLine": "干锅肥肠很会安慰人，今天就吃得尽兴一点。"
+  },
+  {
+    "id": "sichuan-mapodoufu",
+    "name": "麻婆豆腐",
+    "category": "川菜",
+    "kind": "正餐",
+    "reason": "麻辣和嫩滑结合得刚刚好，很下饭。",
+    "coupleLine": "麻婆豆腐很适合今天，麻辣一点才够精神。"
+  },
+  {
+    "id": "sichuan-shuizhurou",
+    "name": "水煮肉片",
+    "category": "川菜",
+    "kind": "正餐",
+    "reason": "香辣过瘾，适合想吃点刺激的时候。",
+    "coupleLine": "水煮肉片很顶，今天就把选择困难煮掉。"
+  },
+  {
+    "id": "sichuan-maoxuewang",
+    "name": "毛血旺",
+    "category": "川菜",
+    "kind": "正餐",
+    "reason": "料很足，口感丰富，特别适合想吃重口味。",
+    "coupleLine": "毛血旺很适合今天，吃完记得夸自己会选。"
+  },
+  {
+    "id": "sichuan-huiguorou",
+    "name": "回锅肉",
+    "category": "川菜",
+    "kind": "正餐",
+    "reason": "肥瘦相间很香，配饭会不小心多吃几口。",
+    "coupleLine": "回锅肉很会抓胃口，今天就乖乖吃饭。"
+  },
+  {
+    "id": "sichuan-kaoyu",
+    "name": "麻辣烤鱼",
+    "category": "川菜",
+    "kind": "正餐",
+    "reason": "鱼肉嫩，调味足，适合两个人慢慢吃。",
+    "coupleLine": "麻辣烤鱼很适合今天，热热闹闹吃一顿。"
+  },
+  {
+    "id": "dessert-mixue",
+    "name": "蜜雪冰城",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "便宜又快乐，想喝甜甜的时候很合适。",
+    "coupleLine": "今天可以喝蜜雪冰城，但饭还是要认真吃。"
+  },
+  {
+    "id": "dessert-bawang",
+    "name": "霸王茶姬",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "茶感比较足，想来点清爽甜味很不错。",
+    "coupleLine": "霸王茶姬很适合今天，甜一点心情会更稳。"
+  },
+  {
+    "id": "dessert-xicha",
+    "name": "喜茶",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "口感层次比较丰富，适合奖励一下自己。",
+    "coupleLine": "喜茶今天可以有，开心要及时兑现。"
+  },
+  {
+    "id": "dessert-nayuki",
+    "name": "奈雪",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "茶饮和甜点都很温柔，适合聊天的时候喝。",
+    "coupleLine": "奈雪很适合今天，先喝点甜的再慢慢决定。"
+  },
+  {
+    "id": "dessert-guming",
+    "name": "古茗",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "很容易入口，适合想喝奶茶但不想太重的时候。",
+    "coupleLine": "古茗很乖，今天就让它陪你一起放松。"
+  },
+  {
+    "id": "dessert-coco",
+    "name": "CoCo",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "老熟人奶茶，想喝一口熟悉的味道时很合适。",
+    "coupleLine": "CoCo很稳，今天的甜度就交给它了。"
+  },
+  {
+    "id": "dessert-yangzhi",
+    "name": "杨枝甘露",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "芒果和西柚很清爽，适合天气热的时候。",
+    "coupleLine": "杨枝甘露很有夏天感，今天要吃得开心一点。"
+  },
+  {
+    "id": "dessert-shuangpi",
+    "name": "双皮奶",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "口感软软的，很适合想吃甜品的时候。",
+    "coupleLine": "双皮奶很温柔，今天把自己哄开心一点。"
+  },
+  {
+    "id": "dessert-tiramisu",
+    "name": "提拉米苏",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "甜而不腻，很适合饭后小奖励。",
+    "coupleLine": "提拉米苏今天可以安排，甜味会让人放松。"
+  },
+  {
+    "id": "dessert-mangoboba",
+    "name": "芋泥波波",
+    "category": "奶茶甜品",
+    "kind": "奶茶",
+    "reason": "软糯和奶香都很足，喝起来很有幸福感。",
+    "coupleLine": "芋泥波波很会哄人，今天就奖励自己一杯。"
+  },
+  {
+    "id": "diet-salad",
+    "name": "鸡胸肉沙拉",
+    "category": "减脂餐",
+    "kind": "正餐",
+    "reason": "清爽有蛋白，想轻一点吃的时候很合适。",
+    "coupleLine": "鸡胸肉沙拉很乖，今天也要认真照顾身体。"
+  },
+  {
+    "id": "diet-vegetablebowl",
+    "name": "水煮蛋蔬菜碗",
+    "category": "减脂餐",
+    "kind": "正餐",
+    "reason": "简单干净，适合想平衡一下的时候。",
+    "coupleLine": "水煮蛋蔬菜碗很适合今天，吃得轻一点也很好。"
+  },
+  {
+    "id": "diet-avocado",
+    "name": "牛油果虾仁",
+    "category": "减脂餐",
+    "kind": "正餐",
+    "reason": "口感清爽，适合想吃得健康一点。",
+    "coupleLine": "牛油果虾仁很温柔，今天也要好好吃饭。"
+  },
+  {
+    "id": "diet-steamfish",
+    "name": "清蒸鱼",
+    "category": "减脂餐",
+    "kind": "正餐",
+    "reason": "低负担又有蛋白，适合认真吃饭的时候。",
+    "coupleLine": "清蒸鱼很适合今天，吃得清爽也可以很幸福。"
+  },
+  {
+    "id": "diet-tomatoegg",
+    "name": "番茄鸡蛋汤",
+    "category": "减脂餐",
+    "kind": "正餐",
+    "reason": "酸甜热乎，适合给胃一点轻松感。",
+    "coupleLine": "番茄鸡蛋汤很适合今天，暖胃也暖心。"
+  },
+  {
+    "id": "conv-store-riceball",
+    "name": "饭团",
+    "category": "便利店速食",
+    "kind": "夜宵",
+    "reason": "拿起来就能吃，适合忙忙碌碌的时候。",
+    "coupleLine": "饭团很适合今天，先把肚子安稳住。"
+  },
+  {
+    "id": "conv-store-odeng",
+    "name": "关东煮套餐",
+    "category": "便利店速食",
+    "kind": "夜宵",
+    "reason": "热汤一喝就会舒服很多，夜里特别适合。",
+    "coupleLine": "关东煮套餐很懂你，今天别硬扛着饿。"
+  },
+  {
+    "id": "conv-store-sandwich",
+    "name": "三明治",
+    "category": "便利店速食",
+    "kind": "正餐",
+    "reason": "速度快、负担轻，赶时间的时候很靠谱。",
+    "coupleLine": "三明治很适合今天，简单一点也很好。"
+  },
+  {
+    "id": "conv-store-chicken",
+    "name": "即食鸡胸肉",
+    "category": "便利店速食",
+    "kind": "正餐",
+    "reason": "高蛋白又方便，想轻松一点吃的时候很合适。",
+    "coupleLine": "即食鸡胸肉很努力，今天也要照顾好你。"
+  },
+  {
+    "id": "conv-store-instant",
+    "name": "速食拌饭",
+    "category": "便利店速食",
+    "kind": "夜宵",
+    "reason": "一拌就能吃，适合不想费事的时刻。",
+    "coupleLine": "速食拌饭很贴心，今天就让它帮你省点力气。"
+  },
+  {
+    "id": "conv-store-milk",
+    "name": "热牛奶",
+    "category": "便利店速食",
+    "kind": "奶茶",
+    "reason": "喝点热的会更安心，适合晚上收尾。",
+    "coupleLine": "热牛奶很温柔，今天就别空着肚子睡觉。"
+  }
+]

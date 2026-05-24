@@ -1,0 +1,512 @@
+[
+  {
+    "name": "烧烤",
+    "category": "烧烤",
+    "kind": "夜宵"
+  },
+  {
+    "name": "小龙虾",
+    "category": "小吃",
+    "kind": "夜宵"
+  },
+  {
+    "name": "炒粉",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "炒饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "炸鸡啤酒",
+    "category": "炸鸡",
+    "kind": "炸物"
+  },
+  {
+    "name": "烤生蚝",
+    "category": "烧烤",
+    "kind": "正餐"
+  },
+  {
+    "name": "铁板炒饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "烤苕皮",
+    "category": "烧烤",
+    "kind": "正餐"
+  },
+  {
+    "name": "炸串",
+    "category": "烧烤",
+    "kind": "炸物"
+  },
+  {
+    "name": "泡面加蛋",
+    "category": "面食",
+    "kind": "夜宵"
+  },
+  {
+    "name": "关东煮",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "砂锅粥",
+    "category": "火锅",
+    "kind": "夜宵"
+  },
+  {
+    "name": "烤五花肉",
+    "category": "烧烤",
+    "kind": "正餐"
+  },
+  {
+    "name": "羊肉串",
+    "category": "烧烤",
+    "kind": "小吃"
+  },
+  {
+    "name": "牛肉串",
+    "category": "烧烤",
+    "kind": "小吃"
+  },
+  {
+    "name": "炸年糕",
+    "category": "小吃",
+    "kind": "炸物"
+  },
+  {
+    "name": "杨国福麻辣烫",
+    "category": "麻辣烫",
+    "kind": "正餐"
+  },
+  {
+    "name": "张亮麻辣烫",
+    "category": "麻辣烫",
+    "kind": "正餐"
+  },
+  {
+    "name": "麻辣拌",
+    "category": "麻辣烫",
+    "kind": "正餐"
+  },
+  {
+    "name": "麻辣香锅",
+    "category": "麻辣烫",
+    "kind": "正餐"
+  },
+  {
+    "name": "手抓饼",
+    "category": "小吃",
+    "kind": "小吃"
+  },
+  {
+    "name": "煎饼果子",
+    "category": "小吃",
+    "kind": "小吃"
+  },
+  {
+    "name": "鸡蛋灌饼",
+    "category": "小吃",
+    "kind": "小吃"
+  },
+  {
+    "name": "烤冷面",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "铁板鱿鱼",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "臭豆腐",
+    "category": "小吃",
+    "kind": "小吃"
+  },
+  {
+    "name": "章鱼小丸子",
+    "category": "小吃",
+    "kind": "小吃"
+  },
+  {
+    "name": "烤面筋",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "凉皮",
+    "category": "小吃",
+    "kind": "小吃"
+  },
+  {
+    "name": "肉夹馍",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "酸辣粉",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "螺蛳粉",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "过桥米线",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "兰州拉面",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "刀削面",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "重庆小面",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "热干面",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "肠粉",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "炒河粉",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "炒米粉",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "炒方便面",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "砂锅粉",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "砂锅土豆粉",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "鸭血粉丝汤",
+    "category": "面食",
+    "kind": "正餐"
+  },
+  {
+    "name": "寿司",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "饭团",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "炸鸡",
+    "category": "炸鸡",
+    "kind": "炸物"
+  },
+  {
+    "name": "汉堡",
+    "category": "炸鸡",
+    "kind": "炸物"
+  },
+  {
+    "name": "披萨",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "炸鸡排",
+    "category": "炸鸡",
+    "kind": "炸物"
+  },
+  {
+    "name": "鸡锁骨",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "盐酥鸡",
+    "category": "小吃",
+    "kind": "炸物"
+  },
+  {
+    "name": "烤鸭卷饼",
+    "category": "烧烤",
+    "kind": "小吃"
+  },
+  {
+    "name": "烧鸟",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "车轮饼",
+    "category": "小吃",
+    "kind": "小吃"
+  },
+  {
+    "name": "辣椒炒肉",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "红烧肉",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "黄焖鸡",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "水煮肉片",
+    "category": "川菜",
+    "kind": "正餐"
+  },
+  {
+    "name": "鱼香肉丝",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "宫保鸡丁",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "西红柿炒鸡蛋",
+    "category": "小吃",
+    "kind": "小吃"
+  },
+  {
+    "name": "农家小炒肉",
+    "category": "湘菜",
+    "kind": "正餐"
+  },
+  {
+    "name": "酸菜鱼",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "毛血旺",
+    "category": "川菜",
+    "kind": "正餐"
+  },
+  {
+    "name": "麻婆豆腐",
+    "category": "川菜",
+    "kind": "小吃"
+  },
+  {
+    "name": "糖醋里脊",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "干锅肥肠",
+    "category": "火锅",
+    "kind": "正餐"
+  },
+  {
+    "name": "回锅肉",
+    "category": "火锅",
+    "kind": "正餐"
+  },
+  {
+    "name": "啤酒鸭",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "红烧排骨",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "土豆炖牛肉",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "小炒黄牛肉",
+    "category": "湘菜",
+    "kind": "正餐"
+  },
+  {
+    "name": "番茄肥牛",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "烤鱼",
+    "category": "烧烤",
+    "kind": "正餐"
+  },
+  {
+    "name": "石锅拌饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "咖喱鸡饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "照烧鸡排饭",
+    "category": "米饭类",
+    "kind": "炸物"
+  },
+  {
+    "name": "卤肉饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "猪脚饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "烧鸭饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "叉烧饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "煲仔饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "牛肉盖饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "肥牛饭",
+    "category": "米饭类",
+    "kind": "正餐"
+  },
+  {
+    "name": "鸡公煲",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "麻辣烤鱼",
+    "category": "烧烤",
+    "kind": "正餐"
+  },
+  {
+    "name": "部队火锅",
+    "category": "火锅",
+    "kind": "正餐"
+  },
+  {
+    "name": "寿喜锅",
+    "category": "火锅",
+    "kind": "正餐"
+  },
+  {
+    "name": "蜜雪冰城",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "霸王茶姬",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "喜茶",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "奈雪",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "沪上阿姨",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "古茗",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "茶百道",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "杨枝甘露",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "双皮奶",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "芋泥波波",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "杨枝甘露冰",
+    "category": "小吃",
+    "kind": "正餐"
+  },
+  {
+    "name": "奥利奥蛋糕",
+    "category": "奶茶甜品",
+    "kind": "奶茶"
+  },
+  {
+    "name": "提拉米苏",
+    "category": "小吃",
+    "kind": "正餐"
+  }
+]
