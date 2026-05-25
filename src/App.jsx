@@ -46,20 +46,6 @@ const tabs = [
   { key: 'wheel', label: '转盘', icon: Sparkles },
 ];
 
-const wheelOptions = [
-  '麻辣烫',
-  '炸鸡',
-  '烤肉',
-  '黄焖鸡',
-  '兰州拉面',
-  '沙县小吃',
-  '麻辣香锅',
-  '肯德基',
-  '麦当劳',
-  '湘菜',
-  '火锅',
-  '手抓饼',
-];
 
 const wheelColors = [
   '#fff0d8',
@@ -212,6 +198,14 @@ function App() {
   const dailyDishes = useMemo(() => buildDailyMenu(dishes, new Date(), 14, dailyMenuOptions), [
     dailyMenuOptions,
   ]);
+  const wheelOptions = useMemo(() => {
+    const picked = new Set();
+    const opts = [];
+    const add = (name) => { if (!picked.has(name) && opts.length < 12) { picked.add(name); opts.push(name); } };
+    dailyDishes.forEach(d => add(d.name));
+    dishes.forEach(d => add(d.name));
+    return opts;
+  }, [dailyDishes]);
   const previousDailyDishes = useMemo(() => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
