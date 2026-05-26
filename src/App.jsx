@@ -187,6 +187,9 @@ function App() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const wheelTimer = useRef(null);
   const rollTimer = useRef(null);
+  const userClickRef = useRef(false);
+  const [scrollHighlight, setScrollHighlight] = useState('全部');
+  const highlightCategory = activeCategory !== '全部' ? activeCategory : scrollHighlight;
 
   const dailyMenuOptions = useMemo(
     () => ({
@@ -262,6 +265,46 @@ function App() {
       .filter((group) => group.dishes.length);
   }, [categories, filteredDishes]);
 
+  const displayGroups = useMemo(
+    () => activeCategory === '全部'
+      ? groupedDishes
+      : groupedDishes.filter(g => g.category === activeCategory),
+    [activeCategory, groupedDishes],
+  );
+
+  // Scroll linkage: right scroll → left highlight (only in "全部" mode)
+  useEffect(() => {
+    if (tab !== 'category' || activeCategory !== '全部') return;
+    let rafId = null;
+    const onScroll = () => {
+      if (userClickRef.current) return;
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const anchorY = 170;
+        let current = '全部';
+        for (const group of groupedDishes) {
+          const el = document.getElementById(`category-section-${group.category}`);
+          if (!el) continue;
+          if (el.getBoundingClientRect().top <= anchorY) current = group.category;
+        }
+        setScrollHighlight(current);
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [tab, activeCategory, groupedDishes]);
+
+  // Sidebar auto-scroll: highlight category button into view
+  useEffect(() => {
+    if (tab !== 'category') return;
+    const btn = document.getElementById(`cat-btn-${highlightCategory}`);
+    btn?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [tab, highlightCategory]);
+
   const favoriteDishes = useMemo(
     () => dishes.filter((dish) => favorites.includes(dish.id)),
     [favorites],
@@ -305,6 +348,9 @@ function App() {
 
   const scrollToCategory = (category) => {
     setActiveCategory(category);
+    setScrollHighlight(category);
+    userClickRef.current = true;
+    setTimeout(() => { userClickRef.current = false }, 600);
     if (category === '全部') {
       document.getElementById('category-menu-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
@@ -446,6 +492,7 @@ function App() {
                           onClick={() => {
                             setDesiredTag(tag.key);
                             setActiveCategory('全部');
+                            setScrollHighlight('全部');
                           }}
                         >
                           {tag.label}
@@ -574,6 +621,7 @@ function App() {
                       className={`rounded-full px-3 py-2 text-[12px] transition ${activeCategory === category ? 'bg-tomato text-white' : 'bg-cream-100 text-soy'}`}
                       onClick={() => {
                         setActiveCategory(category);
+                        setScrollHighlight(category);
                         setTab('category');
                       }}
                     >
@@ -599,7 +647,7 @@ function App() {
                 </div>
                 <div className="mt-3 flex items-center justify-between px-1 text-[12px] text-stone-500">
                   <span>今日上新 {filteredDishes.length} 道</span>
-                  <span>{activeCategory}</span>
+                  <span>{highlightCategory}</span>
                 </div>
               </section>
 
@@ -613,11 +661,12 @@ function App() {
                     return (
                     <button
                       key={category}
-                      className={`mb-1 flex min-h-11 w-full flex-col items-center justify-center rounded-[16px] px-2 py-2 text-center transition ${activeCategory === category ? 'bg-soy text-white shadow-sm' : 'bg-cream-50 text-soy'}`}
+                      id={`cat-btn-${category}`}
+                      className={`mb-1 flex min-h-11 w-full flex-col items-center justify-center rounded-[16px] px-2 py-2 text-center transition ${highlightCategory === category ? 'bg-soy text-white shadow-sm' : 'bg-cream-50 text-soy'}`}
                       onClick={() => scrollToCategory(category)}
                     >
                       <span className="text-[12px] font-medium leading-4">{category}</span>
-                      <span className={`mt-0.5 text-[10px] ${activeCategory === category ? 'text-white/75' : 'text-stone-400'}`}>
+                      <span className={`mt-0.5 text-[10px] ${highlightCategory === category ? 'text-white/75' : 'text-stone-400'}`}>
                         {count}
                       </span>
                     </button>
@@ -626,8 +675,8 @@ function App() {
                 </aside>
 
                 <div className="min-w-0 space-y-4">
-                  {groupedDishes.length ? (
-                    groupedDishes.map((group) => (
+                  {displayGroups.length ? (
+                    displayGroups.map((group) => (
                       <section
                         key={group.category}
                         id={`category-section-${group.category}`}

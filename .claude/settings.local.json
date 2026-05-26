@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__fetch__fetch",
+      "mcp__grok-search__web_search",
+      "mcp__sequential-thinking__sequentialthinking"
+    ]
+  }
+}
