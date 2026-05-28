@@ -17,7 +17,14 @@ async function requestJson(path, options = {}) {
     ...options,
   });
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    const error = new Error(`Request failed: ${response.status}`);
+    error.status = response.status;
+    try {
+      error.data = await response.json();
+    } catch {
+      error.data = null;
+    }
+    throw error;
   }
   return response.status === 204 ? null : response.json();
 }
@@ -66,4 +73,15 @@ export async function upsertCoupleState(coupleId, key, value) {
     method: 'PUT',
     body: JSON.stringify({ value }),
   });
+}
+
+export async function fetchNearbyFood({ lat, lng, category = 'main', radius = 1500, limit = 20 }) {
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lng: String(lng),
+    category,
+    radius: String(radius),
+    limit: String(limit),
+  });
+  return requestJson(`/api/nearby-food?${params}`);
 }

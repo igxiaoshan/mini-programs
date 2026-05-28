@@ -19,7 +19,7 @@ import crawledDishes from './data/crawledDishes.json';
 import extraDishes from './data/extraDishes.json';
 import generatedDishes from './data/generatedDishes.json';
 import { DESIRE_TAGS, buildDailyMenu, calculateRepeatRate, chooseByHash, dateKey, normalizeDish } from './lib/dailyMenu';
-import { createCouple, getClientId, joinCouple, getCoupleStatus } from './lib/api';
+import { createCouple, fetchNearbyFood, getClientId, joinCouple, getCoupleStatus } from './lib/api';
 import { dayStamp, useCoupleState, usePersistentState } from './lib/storage';
 
 const dishes = [
@@ -32,6 +32,13 @@ const dishes = [
 ].map((dish, index) => normalizeDish(dish, index));
 
 const rollKinds = ['小吃', '正餐', '夜宵', '奶茶', '炸物'];
+const nearbyCategories = [
+  { key: 'main', label: '正餐' },
+  { key: 'drinks', label: '茶饮' },
+  { key: 'coffee', label: '咖啡' },
+  { key: 'cake', label: '蛋糕' },
+  { key: 'snacks', label: '小吃' },
+];
 const couplePrompts = [
   '不许再纠结了',
   '宝宝今天必须好好吃饭',
@@ -209,6 +216,11 @@ function App() {
   const rollTimer = useRef(null);
   const userClickRef = useRef(false);
   const [scrollHighlight, setScrollHighlight] = useState('全部');
+  const [nearbyCategory, setNearbyCategory] = useState('main');
+  const [nearbyItems, setNearbyItems] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyError, setNearbyError] = useState('');
+  const [nearbyLocation, setNearbyLocation] = useState(null);
   const highlightCategory = activeCategory !== '全部' ? activeCategory : scrollHighlight;
 
   // --- Couple binding state ---
@@ -449,6 +461,66 @@ function App() {
       ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const loadNearbyFood = async (category = nearbyCategory) => {
+    if (!navigator.geolocation) {
+      setNearbyError('当前浏览器不支持定位');
+      return;
+    }
+
+    setNearbyCategory(category);
+    setNearbyLoading(true);
+    setNearbyError('');
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 60000,
+        });
+      });
+      const location = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+      const data = await fetchNearbyFood({ ...location, category, radius: 1500, limit: 20 });
+      setNearbyLocation(location);
+      setNearbyItems(data.items || []);
+      if (!data.items?.length) setNearbyError('附近暂时没有找到餐饮结果');
+    } catch (error) {
+      setNearbyItems([]);
+      if (error.code === 1) {
+        setNearbyError('定位权限被拒绝，请允许定位后再试');
+      } else if (error.status === 503) {
+        setNearbyError('地图服务未配置，暂时无法获取附近推荐');
+      } else {
+        setNearbyError(error.data?.error || '附近推荐获取失败，请稍后再试');
+      }
+    } finally {
+      setNearbyLoading(false);
+    }
+  };
+
+  const nearbyPoiToDish = (poi) => ({
+    id: `poi-${poi.source}-${poi.id}`,
+    name: poi.name,
+    category: poi.categoryLabel,
+    kind: poi.categoryLabel,
+    kindHint: poi.categoryLabel,
+    reason: `${poi.address || '就在附近'}${poi.distance ? `，距离约 ${poi.distance} 米` : ''}`,
+    coupleLine: `今天就去 ${poi.name}，少纠结多吃饭。`,
+    source: 'poi',
+    poi,
+    pickedAt: Date.now(),
+  });
+
+  const pickNearbyFood = (poi) => {
+    const dish = nearbyPoiToDish(poi);
+    setResult(dish);
+    setQuote(dish.coupleLine);
+    if (coupleId) setMyChoice({ id: dish.id, name: dish.name, kind: dish.kind, kindHint: dish.kindHint });
+  };
+
   const startRandomPick = () => {
     if (rolling) return;
     if (rollTimer.current) clearInterval(rollTimer.current);
@@ -620,6 +692,69 @@ function App() {
                     </div>
                   </div>
                 </div>
+              </section>
+
+              <section className="rounded-[28px] bg-white p-4 shadow-soft">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[12px] text-stone-500">定位推荐</p>
+                    <h3 className="text-[17px] font-semibold text-soy">附近好吃的</h3>
+                  </div>
+                  <button
+                    className="rounded-full bg-soy px-3 py-2 text-[12px] font-medium text-white disabled:opacity-60"
+                    onClick={() => loadNearbyFood()}
+                    disabled={nearbyLoading}
+                  >
+                    {nearbyLoading ? '获取中' : '获取附近推荐'}
+                  </button>
+                </div>
+
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                  {nearbyCategories.map((item) => (
+                    <button
+                      key={item.key}
+                      className={`shrink-0 rounded-full px-3 py-2 text-[12px] font-medium transition ${nearbyCategory === item.key ? 'bg-tomato text-white' : 'bg-cream-100 text-soy'}`}
+                      onClick={() => loadNearbyFood(item.key)}
+                      disabled={nearbyLoading}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                {nearbyLocation ? (
+                  <p className="mt-2 text-[11px] text-stone-400">
+                    已获取当前位置：{nearbyLocation.lat.toFixed(4)}, {nearbyLocation.lng.toFixed(4)}
+                  </p>
+                ) : null}
+                {nearbyError ? (
+                  <div className="mt-3 rounded-[18px] bg-cream-50 px-4 py-3 text-[13px] text-stone-500">
+                    {nearbyError}
+                  </div>
+                ) : null}
+
+                {nearbyItems.length ? (
+                  <div className="mt-3 space-y-2">
+                    {nearbyItems.map((poi) => (
+                      <div key={`${poi.source}-${poi.id}`} className="rounded-[20px] bg-cream-50 p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-[15px] font-semibold text-soy">{poi.name}</p>
+                            <p className="mt-1 text-[12px] text-stone-500">
+                              {poi.distance ? `${poi.distance} 米 · ` : ''}{poi.address || poi.categoryLabel}
+                            </p>
+                          </div>
+                          <button
+                            className="shrink-0 rounded-full bg-tomato px-3 py-2 text-[12px] font-medium text-white"
+                            onClick={() => pickNearbyFood(poi)}
+                          >
+                            设为今日推荐
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </section>
 
               {result ? (

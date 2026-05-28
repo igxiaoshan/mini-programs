@@ -42,6 +42,171 @@ const coupleSchema = new mongoose.Schema(
 
 const Couple = mongoose.model('Couple', coupleSchema);
 
+const nearbyCategories = new Map([
+  ['main', '正餐'],
+  ['drinks', '茶饮'],
+  ['coffee', '咖啡'],
+  ['cake', '蛋糕'],
+  ['snacks', '小吃'],
+]);
+const poiProvider = process.env.MAP_POI_PROVIDER || 'mock';
+const poiApiKey = process.env.MAP_POI_API_KEY || '';
+const amapTypeCodes = {
+  main: '050000',
+  drinks: '050700',
+  coffee: '050500',
+  cake: '050800',
+  snacks: '050900',
+};
+const tencentCategoryKeywords = {
+  main: '餐厅',
+  drinks: '奶茶',
+  coffee: '咖啡',
+  cake: '蛋糕',
+  snacks: '小吃',
+};
+
+function parseNumberParam(value, fallback) {
+  if (value === undefined) return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseNearbyFoodQuery(query) {
+  const lat = parseNumberParam(query.lat);
+  const lng = parseNumberParam(query.lng);
+  const category = query.category || 'main';
+  const radius = parseNumberParam(query.radius, 1500);
+  const limit = parseNumberParam(query.limit, 20);
+
+  if (typeof lat !== 'number' || lat < -90 || lat > 90) return { error: 'lat must be a number between -90 and 90' };
+  if (typeof lng !== 'number' || lng < -180 || lng > 180) return { error: 'lng must be a number between -180 and 180' };
+  if (!nearbyCategories.has(category)) return { error: 'category is invalid' };
+  if (radius === null || radius <= 0) return { error: 'radius must be a positive number' };
+  if (limit === null || limit <= 0) return { error: 'limit must be a positive number' };
+
+  return {
+    lat,
+    lng,
+    category,
+    radius: Math.min(Math.round(radius), 5000),
+    limit: Math.min(Math.round(limit), 30),
+  };
+}
+
+function normalizePoi(item, category, source) {
+  return {
+    id: String(item.id || `${source}-${item.name}-${item.lat}-${item.lng}`),
+    name: String(item.name || ''),
+    category,
+    categoryLabel: nearbyCategories.get(category),
+    address: item.address ? String(item.address) : '',
+    distance: Number.isFinite(Number(item.distance)) ? Math.round(Number(item.distance)) : null,
+    lat: Number.isFinite(Number(item.lat)) ? Number(item.lat) : null,
+    lng: Number.isFinite(Number(item.lng)) ? Number(item.lng) : null,
+    source,
+  };
+}
+
+function withTimeout(ms = 3000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return { controller, timer };
+}
+
+function parseAmapLocation(location) {
+  if (typeof location !== 'string') return {};
+  const [lng, lat] = location.split(',').map(Number);
+  return { lat, lng };
+}
+
+function normalizeAmapPoi(item) {
+  const location = parseAmapLocation(item.location);
+  return {
+    id: item.id,
+    name: item.name,
+    address: Array.isArray(item.address) ? item.address.join('') : item.address,
+    distance: item.distance,
+    lat: location.lat,
+    lng: location.lng,
+  };
+}
+
+function normalizeTencentPoi(item) {
+  return {
+    id: item.id,
+    name: item.title,
+    address: item.address,
+    distance: item._distance,
+    lat: item.location?.lat,
+    lng: item.location?.lng,
+  };
+}
+
+async function fetchAmapNearbyFood({ lat, lng, category, radius, limit }) {
+  const url = new URL('https://restapi.amap.com/v5/place/around');
+  url.search = new URLSearchParams({
+    key: poiApiKey,
+    location: `${lng},${lat}`,
+    radius: String(radius),
+    types: amapTypeCodes[category],
+    page_size: String(limit),
+  });
+
+  const { controller, timer } = withTimeout();
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    const data = await response.json();
+    if (!response.ok || data.status !== '1') {
+      const error = new Error(data.info || 'Map POI provider request failed');
+      error.status = response.ok ? 502 : response.status;
+      throw error;
+    }
+    return (data.pois || []).map(normalizeAmapPoi);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchTencentNearbyFood({ lat, lng, category, radius, limit }) {
+  const url = new URL('https://apis.map.qq.com/ws/place/v1/search');
+  url.search = new URLSearchParams({
+    key: poiApiKey,
+    keyword: tencentCategoryKeywords[category],
+    boundary: `nearby(${lat},${lng},${radius},1)`,
+    page_size: String(limit),
+  });
+
+  const { controller, timer } = withTimeout();
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    const data = await response.json();
+    if (!response.ok || data.status !== 0) {
+      const error = new Error(data.message || 'Map POI provider request failed');
+      error.status = response.ok ? 502 : response.status;
+      throw error;
+    }
+    return (data.data || []).map(normalizeTencentPoi);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchNearbyFoodFromProvider(params) {
+  if (poiProvider === 'mock' || !poiApiKey) {
+    const error = new Error('Map POI provider is not configured');
+    error.status = 503;
+    throw error;
+  }
+
+  if (poiProvider === 'amap') return fetchAmapNearbyFood(params);
+  if (poiProvider === 'tencent') return fetchTencentNearbyFood(params);
+
+  const error = new Error('Map POI provider is not supported');
+  error.status = 503;
+  throw error;
+}
+
 // --- API Router (all /api/* routes) ---
 const api = express.Router();
 api.use(cors());
@@ -49,6 +214,22 @@ api.use(express.json({ limit: '2mb' }));
 
 api.get('/health', (_req, res) => {
   res.json({ ok: true });
+});
+
+api.get('/nearby-food', async (req, res, next) => {
+  const params = parseNearbyFoodQuery(req.query);
+  if (params.error) return res.status(400).json({ error: params.error });
+
+  try {
+    const items = await fetchNearbyFoodFromProvider(params);
+    return res.json({
+      provider: poiProvider,
+      items: items.map((item) => normalizePoi(item, params.category, poiProvider)),
+    });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    return next(error);
+  }
 });
 
 api.get('/state/:key', async (req, res) => {
