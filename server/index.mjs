@@ -20,42 +20,50 @@ const stateSchema = new mongoose.Schema(
     clientId: { type: String, required: true, index: true },
     key: { type: String, required: true, index: true },
     value: { type: mongoose.Schema.Types.Mixed, default: null },
+    coupleId: { type: String, index: true },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
 stateSchema.index({ clientId: 1, key: 1 }, { unique: true });
+stateSchema.index({ coupleId: 1, key: 1 });
 
 const State = mongoose.model('State', stateSchema);
 
-app.use(cors());
-app.use(express.json({ limit: '2mb' }));
+const coupleSchema = new mongoose.Schema(
+  {
+    coupleId: { type: String, required: true, unique: true },
+    code: { type: String, required: true, unique: true },
+    member1: { type: String, required: true },
+    member2: { type: String },
+  },
+  { timestamps: true },
+);
 
-app.get('/api/health', (_req, res) => {
+const Couple = mongoose.model('Couple', coupleSchema);
+
+// --- API Router (all /api/* routes) ---
+const api = express.Router();
+api.use(cors());
+api.use(express.json({ limit: '2mb' }));
+
+api.get('/health', (_req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/state/:key', async (req, res) => {
+api.get('/state/:key', async (req, res) => {
   const { key } = req.params;
   const { clientId } = req.query;
-  if (!clientId) {
-    return res.status(400).json({ error: 'clientId is required' });
-  }
+  if (!clientId) return res.status(400).json({ error: 'clientId is required' });
   const doc = await State.findOne({ clientId, key }).lean();
-  if (!doc) {
-    return res.status(404).json({ error: 'Not found' });
-  }
+  if (!doc) return res.status(404).json({ error: 'Not found' });
   return res.json(doc);
 });
 
-app.put('/api/state/:key', async (req, res) => {
+api.put('/state/:key', async (req, res) => {
   const { key } = req.params;
   const { clientId, value } = req.body || {};
-  if (!clientId) {
-    return res.status(400).json({ error: 'clientId is required' });
-  }
+  if (!clientId) return res.status(400).json({ error: 'clientId is required' });
   const doc = await State.findOneAndUpdate(
     { clientId, key },
     { $set: { value } },
@@ -63,6 +71,71 @@ app.put('/api/state/:key', async (req, res) => {
   ).lean();
   return res.json(doc);
 });
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+api.post('/couple/create', async (req, res) => {
+  const { clientId } = req.body || {};
+  if (!clientId) return res.status(400).json({ error: 'clientId is required' });
+  const existing = await Couple.findOne({ $or: [{ member1: clientId }, { member2: clientId }] });
+  if (existing) return res.json({ coupleId: existing.coupleId, code: existing.code, member1: existing.member1, member2: existing.member2 || null });
+  const coupleId = `cpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  let code = generateCode();
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const conflict = await Couple.findOne({ code });
+    if (!conflict) break;
+    code = generateCode();
+  }
+  const doc = await Couple.create({ coupleId, code, member1: clientId, member2: null });
+  return res.json({ coupleId: doc.coupleId, code: doc.code, member1: doc.member1, member2: null });
+});
+
+api.post('/couple/join', async (req, res) => {
+  const { code, clientId } = req.body || {};
+  if (!code || !clientId) return res.status(400).json({ error: 'code and clientId are required' });
+  const doc = await Couple.findOne({ code });
+  if (!doc) return res.status(404).json({ error: 'Invalid code' });
+  if (doc.member1 === clientId) return res.json({ coupleId: doc.coupleId, code: doc.code, member1: doc.member1, member2: doc.member2, partnerId: doc.member2, partnerJoined: !!doc.member2 });
+  if (doc.member2) return res.status(409).json({ error: 'Couple already has two members' });
+  doc.member2 = clientId;
+  await doc.save();
+  return res.json({ coupleId: doc.coupleId, code: doc.code, member1: doc.member1, member2: clientId });
+});
+
+api.get('/couple/status', async (req, res) => {
+  const { clientId } = req.query;
+  if (!clientId) return res.status(400).json({ error: 'clientId is required' });
+  const doc = await Couple.findOne({ $or: [{ member1: clientId }, { member2: clientId }] });
+  if (!doc) return res.json({ bound: false });
+  return res.json({ bound: true, coupleId: doc.coupleId, code: doc.code, partnerId: doc.member1 === clientId ? doc.member2 : doc.member1, partnerJoined: !!doc.member2 });
+});
+
+api.get('/couple-state/:coupleId/:key', async (req, res) => {
+  const { coupleId, key } = req.params;
+  const doc = await State.findOne({ coupleId, key }).lean();
+  if (!doc) return res.json({ coupleId, key, value: null, updatedAt: null });
+  const updatedAt = doc.updatedAt ? new Date(doc.updatedAt).getTime() : 0;
+  return res.json({ coupleId, key, value: doc.value, updatedAt });
+});
+
+api.put('/couple-state/:coupleId/:key', async (req, res) => {
+  const { coupleId, key } = req.params;
+  const { value } = req.body || {};
+  if (value === undefined) return res.status(400).json({ error: 'value is required' });
+  const doc = await State.findOneAndUpdate(
+    { coupleId, key },
+    { $set: { value, coupleId } },
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  ).lean();
+  return res.json(doc);
+});
+
+app.use('/api', api);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -66,7 +66,7 @@ function slugify(text, fallback) {
   return `${fallback}-${hash}`;
 }
 
-function chooseByHash(name, list) {
+export function chooseByHash(name, list) {
   return list[hashText(name) % list.length];
 }
 
@@ -111,7 +111,7 @@ function shuffleWithSeed(list, seed) {
     .map(({ item }) => item);
 }
 
-function dateKey(date) {
+export function dateKey(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');

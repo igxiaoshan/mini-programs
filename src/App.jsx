@@ -4,10 +4,11 @@ import {
   CheckCheck,
   ChevronRight,
   Clock3,
+  Copy,
   Heart,
   Home,
   LayoutGrid,
-  RotateCcw,
+  Link2,
   Sparkles,
   Star,
   WandSparkles,
@@ -17,8 +18,9 @@ import baseDishes from './data/dishes.json';
 import crawledDishes from './data/crawledDishes.json';
 import extraDishes from './data/extraDishes.json';
 import generatedDishes from './data/generatedDishes.json';
-import { DESIRE_TAGS, buildDailyMenu, calculateRepeatRate, normalizeDish } from './lib/dailyMenu';
-import { dayStamp, usePersistentState } from './lib/storage';
+import { DESIRE_TAGS, buildDailyMenu, calculateRepeatRate, chooseByHash, dateKey, normalizeDish } from './lib/dailyMenu';
+import { createCouple, getClientId, joinCouple, getCoupleStatus } from './lib/api';
+import { dayStamp, useCoupleState, usePersistentState } from './lib/storage';
 
 const dishes = [
   ...new Map(
@@ -36,7 +38,24 @@ const couplePrompts = [
   '男朋友已经帮你决定好了',
   '再纠结就罚你喝奶茶',
   '今天不准饿肚子',
+  '乖乖吃饭才是正事',
+  '都给你选好了，不许说不',
+  '你只管张嘴，选什么我来定',
+  '听话，先把饭吃了再说',
+  '想吃什么？说出来不许反悔',
+  '今天我宠你，吃什么都行',
+  '吃好了才有力气跟我吵架',
+  '别饿着自己，我心疼',
+  '这道菜归你了，不准挑食',
+  '你一个选择困难户，还是听我的吧',
+  '今天开心就好，挑什么都对',
+  '饿着肚子生气更亏，先吃',
+  '有人替你做决定，省心了吧',
+  '吃饱了再纠结人生大事',
+  '今天这口，是替你选的小确幸',
 ];
+
+const dailyCouplePrompt = (date) => chooseByHash(dateKey(date), couplePrompts);
 
 const tabs = [
   { key: 'home', label: '首页', icon: Home },
@@ -172,7 +191,8 @@ function App() {
   const [activeCategory, setActiveCategory] = useState('全部');
   const [search, setSearch] = useState('');
   const [desiredTag, setDesiredTag] = usePersistentState('couple-food-desired-tag', 'all');
-  const [quote, setQuote] = useState('宝宝，今天我来替你做决定。');
+  const [quote, setQuote] = useState(() => dailyCouplePrompt(new Date()));
+  const [promptIndex, setPromptIndex] = useState(() => couplePrompts.indexOf(dailyCouplePrompt(new Date())));
   const [rolling, setRolling] = useState(false);
   const [rollTrack, setRollTrack] = useState([]);
   const [rollIndex, setRollIndex] = useState(0);
@@ -190,6 +210,77 @@ function App() {
   const userClickRef = useRef(false);
   const [scrollHighlight, setScrollHighlight] = useState('全部');
   const highlightCategory = activeCategory !== '全部' ? activeCategory : scrollHighlight;
+
+  // --- Couple binding state ---
+  const [coupleInfo, setCoupleInfo] = usePersistentState('couple-food-couple', null);
+  const coupleId = coupleInfo?.coupleId || null;
+  const myClientId = useMemo(() => getClientId(), []);
+  const partnerId = coupleInfo?.partnerId || null;
+  const [myChoice, setMyChoice] = useCoupleState(coupleId, `choice-${myClientId}`, null);
+  const [partnerChoice] = useCoupleState(partnerId ? coupleId : null, partnerId ? `choice-${partnerId}` : '_none', null);
+  const [showConsensus, setShowConsensus] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [copyHint, setCopyHint] = useState('');
+
+  const copyText = async (text, successText) => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
+      setCopyHint(successText);
+    } catch {
+      setCopyHint('复制失败，请手动复制');
+    }
+  };
+
+  useEffect(() => {
+    if (!copyHint) return;
+    const timer = setTimeout(() => setCopyHint(''), 1800);
+    return () => clearTimeout(timer);
+  }, [copyHint]);
+
+  // Detect consensus
+  useEffect(() => {
+    if (myChoice && partnerChoice) {
+      if (myChoice.id === partnerChoice.id) {
+        setShowConsensus(true);
+      }
+    }
+  }, [myChoice, partnerChoice]);
+
+  // Initialize couple status on mount
+  useEffect(() => {
+    if (!coupleInfo) {
+      getCoupleStatus().then((status) => {
+        if (status.bound) {
+          setCoupleInfo({ coupleId: status.coupleId, code: status.code, partnerId: status.partnerId || null, partnerJoined: status.partnerJoined });
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
+  // Poll couple status until partner joins
+  useEffect(() => {
+    if (!coupleInfo || coupleInfo.partnerJoined) return;
+    const timer = setInterval(() => {
+      getCoupleStatus().then((status) => {
+        if (status.bound && status.partnerJoined && status.partnerId) {
+          setCoupleInfo({ ...coupleInfo, partnerId: status.partnerId, partnerJoined: true });
+        }
+      }).catch(() => {});
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [coupleInfo?.coupleId, coupleInfo?.partnerJoined]);
 
   const dailyMenuOptions = useMemo(
     () => ({
@@ -344,8 +435,6 @@ function App() {
     ]);
   };
 
-  const setMood = (text) => setQuote(text);
-
   const scrollToCategory = (category) => {
     setActiveCategory(category);
     setScrollHighlight(category);
@@ -374,7 +463,7 @@ function App() {
     setRolling(true);
     setRollTrack(track);
     setRollIndex(0);
-    setQuote(sample(couplePrompts));
+    setQuote(dailyCouplePrompt(new Date()));
 
     let steps = 0;
     rollTimer.current = setInterval(() => {
@@ -387,6 +476,7 @@ function App() {
         setResult({ ...picked, pickedAt: Date.now(), kindHint: kind });
         setRolling(false);
         setQuote(picked.coupleLine);
+        if (coupleId) setMyChoice({ id: picked.id, name: picked.name, kind: picked.kind, kindHint: kind });
       }
     }, 110);
   };
@@ -410,10 +500,6 @@ function App() {
   };
 
   const randomPreview = result || sample(dailyDishes.length ? dailyDishes : dishes);
-  const displayQuotes = [
-    `今天适合吃 ${randomPreview.name}，因为 ${randomPreview.reason}`,
-    quote,
-  ];
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fffaf0,_#fff4dc_36%,_#fff1d0_100%)] text-stone-800">
@@ -585,23 +671,105 @@ function App() {
 
               <section className="rounded-[28px] bg-white p-4 shadow-soft">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[17px] font-semibold text-soy">情侣互动文案</h3>
-                  <button className="inline-flex items-center gap-1 text-[12px] text-stone-500" onClick={() => setMood(sample(couplePrompts))}>
-                    换一句 <RotateCcw className="h-3.5 w-3.5" />
-                  </button>
+                  <h3 className="text-[17px] font-semibold text-soy">情侣绑定</h3>
+                  {coupleInfo?.partnerJoined ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-mint/20 px-2.5 py-1 text-[11px] font-medium text-mint">
+                      <Heart className="h-3 w-3" /> 已连接
+                    </span>
+                  ) : null}
                 </div>
-                <div className="mt-3 rounded-[22px] bg-cream-50 p-4 text-[15px] leading-7 text-soy">
-                  {displayQuotes[0]}
+                {!coupleInfo ? (
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      className="flex-1 rounded-full bg-tomato px-3 py-2.5 text-[12px] font-medium text-white"
+                      onClick={() => createCouple().then((r) => setCoupleInfo({ coupleId: r.coupleId, code: r.code, partnerId: r.member2 || null, partnerJoined: !!r.member2 })).catch(() => {})}
+                    >
+                      邀请Ta
+                    </button>
+                    <div className="flex flex-1 gap-1">
+                      <input
+                        value={joinCode}
+                        onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                        placeholder="输入邀请码"
+                        maxLength={6}
+                        className="w-0 flex-1 rounded-full bg-cream-50 px-3 py-2.5 text-[12px] text-soy outline-none placeholder:text-stone-400"
+                      />
+                      <button
+                        className="shrink-0 rounded-full bg-soy px-3 py-2.5 text-[12px] font-medium text-white"
+                        onClick={() => { if (joinCode.length === 6) joinCouple(joinCode).then((r) => setCoupleInfo({ coupleId: r.coupleId, code: r.code, partnerId: r.member1, partnerJoined: true })).catch(() => {}); }}
+                      >
+                        加入
+                      </button>
+                    </div>
+                  </div>
+                ) : !coupleInfo.partnerJoined ? (
+                  <div className="mt-3 text-center">
+                    <p className="text-[13px] text-stone-500">把邀请码发给Ta，等Ta加入</p>
+                    <p className="mt-2 text-[20px] font-bold tracking-widest text-tomato">{coupleInfo.code}</p>
+                    <button
+                      className="mt-2 inline-flex items-center gap-1 rounded-full bg-cream-100 px-3 py-2 text-[12px] text-soy"
+                      onClick={() => copyText(coupleInfo.code, '邀请码已复制')}
+                    >
+                      <Copy className="h-3.5 w-3.5" /> 复制邀请码
+                    </button>
+                    {copyHint ? <p className="mt-2 text-[12px] text-mint">{copyHint}</p> : null}
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-[22px] bg-cream-50 p-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-[14px] font-medium text-soy">我：{myChoice?.name || '还没选'}</span>
+                      <Link2 className="h-4 w-4 text-mint" />
+                      <span className="text-[14px] font-medium text-soy">Ta：{partnerChoice?.name || '还没选'}</span>
+                    </div>
+                    {myChoice && partnerChoice && myChoice.id !== partnerChoice.id && (
+                      <p className="mt-2 text-[12px] text-stone-500">想吃的不一样，再商量一下？</p>
+                    )}
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-[28px] bg-white p-4 shadow-soft">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[17px] font-semibold text-soy">今日食光</h3>
+                  <span className="rounded-full bg-cream-100 px-2.5 py-1 text-[11px] text-stone-500">{dayStamp()}</span>
                 </div>
-                <p className="mt-3 rounded-[22px] bg-white px-4 py-3 text-[14px] leading-7 text-tomato shadow-sm">
-                  {displayQuotes[1]}
-                </p>
+                <div className="mt-3 rounded-[22px] bg-[linear-gradient(180deg,#fff9ee,#fff1d7)] px-4 py-5 text-center">
+                  <p className="mx-auto inline-flex rounded-full bg-white/80 px-3 py-1 text-[11px] font-medium text-stone-500 shadow-sm">今日一句</p>
+                  <p className="mt-3 text-[18px] font-semibold leading-8 text-tomato">{quote}</p>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                    <p className="text-[11px] text-stone-500">今日推荐</p>
+                    <p className="mt-1 truncate text-[14px] font-semibold text-soy">{result ? result.name : randomPreview.name}</p>
+                    <p className="text-[10px] text-stone-400">{result ? (result.kindHint || result.kind) : randomPreview.kind}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                    <p className="text-[11px] text-stone-500">今日已吃</p>
+                    <p className="mt-1 text-[18px] font-semibold leading-none text-soy">{todayEaten.length}</p>
+                    <p className="text-[10px] text-stone-400">道</p>
+                  </div>
+                  <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                    <p className="text-[11px] text-stone-500">收藏</p>
+                    <p className="mt-1 text-[18px] font-semibold leading-none text-peach">{favorites.length}</p>
+                    <p className="text-[10px] text-stone-400">个</p>
+                  </div>
+                </div>
+                <button
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-soy px-3 py-2.5 text-[13px] font-medium text-white transition active:scale-[0.98]"
+                  onClick={() => {
+                    const text = `今天吃啥 | ${dayStamp()}\n${quote}\n推荐：${result ? `${result.name} · ${result.kindHint || result.kind}` : `${randomPreview.name} · ${randomPreview.kind}`}\n已吃 ${todayEaten.length} 道`;
+                    copyText(text, '今日食光已复制');
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" /> 分享给Ta
+                </button>
+                {copyHint ? <p className="mt-2 text-center text-[12px] text-mint">{copyHint}</p> : null}
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {couplePrompts.map((item) => (
+                  {couplePrompts.map((item, idx) => (
                     <button
                       key={item}
-                      className="rounded-full bg-cream-100 px-3 py-2 text-[12px] text-soy"
-                      onClick={() => setMood(item)}
+                      className={`rounded-full px-3 py-2 text-[12px] transition ${promptIndex === idx ? 'bg-tomato text-white' : 'bg-cream-100 text-soy'}`}
+                      onClick={() => { setPromptIndex(idx); setQuote(item); }}
                     >
                       {item}
                     </button>
@@ -972,6 +1140,23 @@ function App() {
             })}
           </div>
         </nav>
+
+        {showConsensus && myChoice && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowConsensus(false)}>
+            <div className="rounded-[28px] bg-white p-6 text-center shadow-soft animate-slideUp" onClick={(e) => e.stopPropagation()}>
+              <Heart className="mx-auto h-10 w-10 text-tomato animate-bounce" />
+              <h3 className="mt-3 text-[20px] font-bold text-soy">达成共识！</h3>
+              <p className="mt-2 text-[15px] text-tomato font-semibold">{myChoice.name}</p>
+              <p className="mt-1 text-[12px] text-stone-500">你们都想吃这道菜</p>
+              <button
+                className="mt-4 rounded-full bg-tomato px-6 py-2.5 text-[13px] font-medium text-white"
+                onClick={() => setShowConsensus(false)}
+              >
+                太好了
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

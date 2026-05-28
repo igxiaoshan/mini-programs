@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Couple Food Picker H5 ("今天吃啥") — 情侣互动点餐 H5/PWA 应用，帮助用户随机决定今天吃什么。
+Couple Food Picker H5（“今天吃啥”）— 情侣互动点餐 H5/PWA。核心体验是：按日期生成同一天一致的“今日一句”和每日推荐，并支持情侣邀请码绑定后共享选择状态。
 
 ## Commands
 
@@ -21,6 +21,9 @@ npm run server
 # 生产构建
 npm run build
 
+# 预览构建产物
+npm run preview
+
 # 部署（仅上传 dist）
 bash deploy.sh
 
@@ -28,41 +31,52 @@ bash deploy.sh
 bash deploy.sh --full
 
 # 菜品数据脚本
-npm run enrich:dishes      # 从 docs/ 爬取菜品到 crawledDishes.json
-npm run generate:dishes     # 基于已有菜品生成变体到 generatedDishes.json
+npm run enrich:dishes
+npm run generate:dishes
 ```
 
-无 ESLint、Prettier、测试框架。
+项目没有 ESLint、Prettier 或测试框架脚本。
 
 ## Architecture
 
-**一体化部署**: Express 同时托管前端静态文件 (dist/) 和后端 API (/api/*)，无需分别部署前后端。
+**一体化部署**：Express 同时托管 `dist/` 静态文件和 `/api/*`，生产环境由同一个 Node 进程提供前后端。
 
 ```
 浏览器 → nginx 反代 (serv00) → Express (:20531)
-                                    ├── /api/* → MongoDB (State model: clientId + key + value)
+                                    ├── /api/* → MongoDB
                                     └── /* → SPA fallback (dist/index.html)
 ```
 
-**后端极简**: `server/index.mjs` 仅89行，唯一 Model 是 `State` (clientId/key/value)，用于用户状态持久化。菜品数据不通过 API 提供。
+**前端主入口**：几乎所有 UI 和业务逻辑都在 `src/App.jsx`。页面通过本地 state 切换，不使用路由库。
 
-**前端单文件**: 全部 UI 在 `src/App.jsx` (~930行)，仅 `DishCard` 为独立组件。视图通过 `tab` state 切换 (home/category/favorites/eaten/wheel)，无路由库。
+**日期种子推荐**：`src/lib/dailyMenu.js` 提供菜品归一化、哈希选择和日期 key，同一天会返回同一份推荐/文案。
 
-**双层持久化**: `src/lib/storage.js` 的 `usePersistentState` hook — localStorage 优先读写 + 异步同步到 MongoDB（250ms debounce upsert）。clientId 为 localStorage 生成的 UUID。
+**双层持久化**：`src/lib/storage.js` 先读写 `localStorage`，再异步同步到 MongoDB。`usePersistentState` 负责普通状态，`useCoupleState` 负责情侣共享状态并通过长轮询同步。
 
-**菜品数据流**: 4个 JSON 文件 (`src/data/`) 在构建时静态打包，启动时合并去重 → `normalizeDish()` 推断 tags/reason → `buildDailyMenu()` 用日期种子随机算法生成每日菜单（同一天所有人看到相同推荐）。
+**情侣绑定**：前端通过邀请码创建/加入 couple，绑定后使用 `coupleId + key` 共享选择结果；未绑定时仍按单人本地状态工作。
+
+**后端模型**：
+- `State`：`clientId + key + value + coupleId?`
+- `Couple`：`coupleId + code + member1 + member2`
+
+**后端 API**：
+- `/api/health`
+- `/api/state/:key`
+- `/api/couple/create`
+- `/api/couple/join`
+- `/api/couple/status`
+- `/api/couple-state/:coupleId/:key`
 
 ## Key Files
 
 | 文件 | 作用 |
 |------|------|
-| `src/App.jsx` | 全部 UI + 逻辑 |
-| `src/lib/storage.js` | usePersistentState (localStorage + 远程同步) |
-| `src/lib/dailyMenu.js` | 菜品归一化、每日菜单生成、标签推断 |
-| `src/lib/api.js` | fetchRemoteState / upsertRemoteState |
-| `server/index.mjs` | Express 入口 + State Model + API 路由 |
-| `src/data/dishes.json` | 手工基础菜品 |
-| `src/data/generatedDishes.json` | 脚本生成的2500+变体菜品 |
+| `src/App.jsx` | 主 UI、随机推荐、今日食光、情侣绑定、共识弹窗 |
+| `src/lib/storage.js` | 本地/远程状态同步 hooks |
+| `src/lib/dailyMenu.js` | 菜品归一化、哈希选择、每日菜单生成 |
+| `src/lib/api.js` | clientId、单人状态 API、情侣绑定 API |
+| `server/index.mjs` | Express 入口、Mongoose 模型、API 路由 |
+| `src/data/` | 菜品数据源 |
 
 ## Tech Stack
 
@@ -72,14 +86,13 @@ Node >= 22, npm >= 11, type: "module"
 
 ## Remote Server
 
-serv00 (FreeBSD), SSH alias: `s2serv00`, port 20531, screen session: `couplefood`, domain: https://igxshan.serv00.net/
+serv00（FreeBSD），SSH alias：`s2serv00`，端口 `20531`，screen session：`couplefood`，域名：`https://igxshan.serv00.net/`
 
 详见 `DEPLOY.md`。
 
-## Conventions
+## Notes
 
 - 函数组件 + hooks，无类组件、无 TypeScript
-- 样式全用 TailwindCSS utility classes
+- 样式使用 TailwindCSS utility classes
 - 中文文案硬编码在组件中
-- kind 枚举: `小吃` / `正餐` / `夜宵` / `奶茶` / `炸物`
-- category 枚举: 由 dishes 数据中的 category 字段驱动
+- `deploy.sh` 在手动 scp/ssh 时优先使用显式远程路径 `s2serv00:~/app/couple-food-picker/...`，避免 shell 路径展开问题

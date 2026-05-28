@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchRemoteState, upsertRemoteState } from './api';
+import { fetchRemoteState, upsertRemoteState, fetchCoupleState, upsertCoupleState } from './api';
 
 export function readJson(key, fallback) {
   if (typeof window === 'undefined') return fallback;
@@ -62,4 +62,55 @@ export function dayStamp(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+export function useCoupleState(coupleId, key, fallback) {
+  const [value, rawSetValue] = useState(fallback);
+  const sinceRef = useRef(0);
+  const dirtyRef = useRef(false);
+  const hasLocalChangeRef = useRef(false);
+
+  const setValue = useCallback((next) => {
+    dirtyRef.current = true;
+    hasLocalChangeRef.current = true;
+    rawSetValue(next);
+  }, []);
+
+  useEffect(() => {
+    if (!coupleId) return;
+    let cancelled = false;
+    let timer;
+
+    const poll = async () => {
+      try {
+        const res = await fetchCoupleState(coupleId, key, sinceRef.current);
+        if (cancelled) return;
+        if (res.updatedAt) sinceRef.current = res.updatedAt;
+        if (res.value !== undefined && !dirtyRef.current) {
+          rawSetValue(res.value);
+        }
+      } catch { /* ignore */ }
+      if (!cancelled) timer = setTimeout(poll, 5000);
+    };
+
+    poll();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [coupleId, key]);
+
+  useEffect(() => {
+    if (!coupleId || !hasLocalChangeRef.current) return;
+    const timer = setTimeout(() => {
+      upsertCoupleState(coupleId, key, value)
+        .catch(() => {})
+        .finally(() => {
+          dirtyRef.current = false;
+        });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [coupleId, key, value]);
+
+  return [value, setValue];
 }
