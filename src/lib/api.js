@@ -85,3 +85,21 @@ export async function fetchNearbyFood({ lat, lng, category = 'main', radius = 15
   });
   return requestJson(`/api/nearby-food?${params}`);
 }
+
+export async function getVapidPublicKey() {
+  return requestJson('/api/push/vapid-public-key');
+}
+
+export async function subscribePush(coupleId, subscription) {
+  return requestJson('/api/push/subscribe', {
+    method: 'POST',
+    body: JSON.stringify({ clientId: getClientId(), coupleId, subscription }),
+  });
+}
+
+export async function pokePartner(coupleId) {
+  return requestJson('/api/push/poke', {
+    method: 'POST',
+    body: JSON.stringify({ coupleId, fromClientId: getClientId() }),
+  });
+}

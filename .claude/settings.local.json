@@ -4,7 +4,12 @@
       "mcp__fetch__fetch",
       "mcp__grok-search__web_search",
       "mcp__sequential-thinking__sequentialthinking",
-      "WebSearch"
+      "WebSearch",
+      "Bash(ssh s2serv00:*)",
+      "Bash(npm run:*)",
+      "Bash(scp -q -r dist/* \"s2serv00:~/app/couple-food-picker/dist/\")",
+      "Bash(curl -sf https://igxshan.serv00.net/api/health)",
+      "Bash(ls:*)"
     ]
   }
 }

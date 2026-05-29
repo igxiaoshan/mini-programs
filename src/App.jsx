@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BookmarkPlus,
+  Bell,
+  BellOff,
   CheckCheck,
   ChevronRight,
   Clock3,
@@ -19,8 +21,9 @@ import crawledDishes from './data/crawledDishes.json';
 import extraDishes from './data/extraDishes.json';
 import generatedDishes from './data/generatedDishes.json';
 import { DESIRE_TAGS, buildDailyMenu, calculateRepeatRate, chooseByHash, dateKey, normalizeDish } from './lib/dailyMenu';
-import { createCouple, fetchNearbyFood, getClientId, joinCouple, getCoupleStatus } from './lib/api';
+import { createCouple, fetchNearbyFood, getClientId, joinCouple, getCoupleStatus, pokePartner } from './lib/api';
 import { dayStamp, useCoupleState, usePersistentState } from './lib/storage';
+import { isPushSupported, enablePush } from './lib/push';
 
 const dishes = [
   ...new Map(
@@ -234,6 +237,15 @@ function App() {
   const [joinCode, setJoinCode] = useState('');
   const [copyHint, setCopyHint] = useState('');
 
+  const [myNudge, setMyNudge] = useCoupleState(coupleId, `nudge-${myClientId}`, null);
+  const [partnerNudge] = useCoupleState(partnerId ? coupleId : null, partnerId ? `nudge-${partnerId}` : '_none', null);
+  const lastSeenNudgeRef = useRef(0);
+  const [nudgeToast, setNudgeToast] = useState(null);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [notifPermission, setNotifPermission] = useState(
+    typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported',
+  );
+
   const copyText = async (text, successText) => {
     try {
       if (navigator.clipboard?.writeText) {
@@ -262,13 +274,30 @@ function App() {
   }, [copyHint]);
 
   // Detect consensus
+  const isConsensus = myChoice && partnerChoice && myChoice.id === partnerChoice.id;
   useEffect(() => {
-    if (myChoice && partnerChoice) {
-      if (myChoice.id === partnerChoice.id) {
-        setShowConsensus(true);
-      }
-    }
-  }, [myChoice, partnerChoice]);
+    if (isConsensus) setShowConsensus(true);
+  }, [isConsensus]);
+
+  useEffect(() => {
+    if (!partnerNudge?.ts) return;
+    if (partnerNudge.ts <= lastSeenNudgeRef.current) return;
+    lastSeenNudgeRef.current = partnerNudge.ts;
+    if (Date.now() - partnerNudge.ts < 60_000) setNudgeToast({ ts: partnerNudge.ts });
+  }, [partnerNudge]);
+
+  useEffect(() => {
+    if (!nudgeToast) return;
+    const timer = setTimeout(() => setNudgeToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [nudgeToast]);
+
+  // Auto-fill invite code from URL ?invite=ABCDEF
+  useEffect(() => {
+    if (coupleInfo) return;
+    const invite = new URLSearchParams(window.location.search).get('invite');
+    if (invite && /^[A-Z2-9]{6}$/.test(invite)) setJoinCode(invite);
+  }, [coupleInfo]);
 
   // Initialize couple status on mount
   useEffect(() => {
@@ -576,6 +605,16 @@ function App() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fffaf0,_#fff4dc_36%,_#fff1d0_100%)] text-stone-800">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col pb-24">
+        {nudgeToast && (
+          <div
+            className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-3 animate-slideUp"
+            onClick={() => setNudgeToast(null)}
+          >
+            <div className="rounded-[22px] bg-tomato px-4 py-3 text-center text-white shadow-soft">
+              <p className="text-[14px] font-semibold">Ta在催你了！快来选今天吃啥</p>
+            </div>
+          </div>
+        )}
         <header className="sticky top-0 z-30 border-b border-amber-100/80 bg-cream-50/90 px-4 py-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -807,11 +846,24 @@ function App() {
               <section className="rounded-[28px] bg-white p-4 shadow-soft">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[17px] font-semibold text-soy">情侣绑定</h3>
-                  {coupleInfo?.partnerJoined ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-mint/20 px-2.5 py-1 text-[11px] font-medium text-mint">
-                      <Heart className="h-3 w-3" /> 已连接
-                    </span>
-                  ) : null}
+                  <div className="flex items-center gap-2">
+                    {coupleInfo?.partnerJoined && isPushSupported() && notifPermission === 'default' ? (
+                      <button
+                        className="inline-flex items-center gap-1 rounded-full bg-cream-100 px-2.5 py-1 text-[11px] font-medium text-soy"
+                        onClick={() => enablePush(coupleId).then((ok) => {
+                          setPushEnabled(ok);
+                          if ('Notification' in window) setNotifPermission(Notification.permission);
+                        })}
+                      >
+                        <Bell className="h-3 w-3" /> 开启提醒
+                      </button>
+                    ) : null}
+                    {coupleInfo?.partnerJoined ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-mint/20 px-2.5 py-1 text-[11px] font-medium text-mint">
+                        <Heart className="h-3 w-3" /> 已连接
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 {!coupleInfo ? (
                   <div className="mt-3 flex gap-2">
@@ -868,36 +920,135 @@ function App() {
                   <h3 className="text-[17px] font-semibold text-soy">今日食光</h3>
                   <span className="rounded-full bg-cream-100 px-2.5 py-1 text-[11px] text-stone-500">{dayStamp()}</span>
                 </div>
-                <div className="mt-3 rounded-[22px] bg-[linear-gradient(180deg,#fff9ee,#fff1d7)] px-4 py-5 text-center">
-                  <p className="mx-auto inline-flex rounded-full bg-white/80 px-3 py-1 text-[11px] font-medium text-stone-500 shadow-sm">今日一句</p>
-                  <p className="mt-3 text-[18px] font-semibold leading-8 text-tomato">{quote}</p>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
-                    <p className="text-[11px] text-stone-500">今日推荐</p>
-                    <p className="mt-1 truncate text-[14px] font-semibold text-soy">{result ? result.name : randomPreview.name}</p>
-                    <p className="text-[10px] text-stone-400">{result ? (result.kindHint || result.kind) : randomPreview.kind}</p>
+                {isConsensus ? (
+                  <div className="mt-3 rounded-[22px] bg-[linear-gradient(180deg,#ffe8e8,#fff0f0)] px-4 py-5 text-center">
+                    <Heart className="mx-auto h-6 w-6 animate-bounce text-tomato" />
+                    <p className="mt-2 text-[16px] font-semibold text-tomato">达成共识！</p>
+                    <p className="mt-1 text-[18px] font-semibold text-soy">{myChoice.name}</p>
+                    <p className="mt-1 text-[13px] text-stone-500">你们都想吃这道菜</p>
                   </div>
-                  <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
-                    <p className="text-[11px] text-stone-500">今日已吃</p>
-                    <p className="mt-1 text-[18px] font-semibold leading-none text-soy">{todayEaten.length}</p>
-                    <p className="text-[10px] text-stone-400">道</p>
+                ) : (
+                  <div className="mt-3 rounded-[22px] bg-[linear-gradient(180deg,#fff9ee,#fff1d7)] px-4 py-5 text-center">
+                    <p className="mx-auto inline-flex rounded-full bg-white/80 px-3 py-1 text-[11px] font-medium text-stone-500 shadow-sm">今日一句</p>
+                    <p className="mt-3 text-[18px] font-semibold leading-8 text-tomato">{quote}</p>
                   </div>
-                  <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
-                    <p className="text-[11px] text-stone-500">收藏</p>
-                    <p className="mt-1 text-[18px] font-semibold leading-none text-peach">{favorites.length}</p>
-                    <p className="text-[10px] text-stone-400">个</p>
+                )}
+                {isConsensus ? (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-[18px] bg-tomato/10 px-2 py-3 text-center">
+                      <p className="text-[11px] text-tomato">共识</p>
+                      <p className="mt-1 truncate text-[14px] font-semibold text-tomato">{myChoice.name}</p>
+                      <p className="text-[10px] text-tomato/70">{myChoice.kindHint || myChoice.kind}</p>
+                    </div>
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">今日已吃</p>
+                      <p className="mt-1 text-[18px] font-semibold leading-none text-soy">{todayEaten.length}</p>
+                      <p className="text-[10px] text-stone-400">道</p>
+                    </div>
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">收藏</p>
+                      <p className="mt-1 text-[18px] font-semibold leading-none text-peach">{favorites.length}</p>
+                      <p className="text-[10px] text-stone-400">个</p>
+                    </div>
                   </div>
-                </div>
-                <button
-                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-soy px-3 py-2.5 text-[13px] font-medium text-white transition active:scale-[0.98]"
-                  onClick={() => {
-                    const text = `今天吃啥 | ${dayStamp()}\n${quote}\n推荐：${result ? `${result.name} · ${result.kindHint || result.kind}` : `${randomPreview.name} · ${randomPreview.kind}`}\n已吃 ${todayEaten.length} 道`;
-                    copyText(text, '今日食光已复制');
-                  }}
-                >
-                  <Copy className="h-3.5 w-3.5" /> 分享给Ta
-                </button>
+                ) : coupleInfo?.partnerJoined ? (
+                  <div className="mt-3 grid grid-cols-4 gap-2">
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">我的推荐</p>
+                      <p className="mt-1 truncate text-[14px] font-semibold text-soy">{result ? result.name : randomPreview.name}</p>
+                      <p className="text-[10px] text-stone-400">{result ? (result.kindHint || result.kind) : randomPreview.kind}</p>
+                    </div>
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">Ta的选择</p>
+                      <p className="mt-1 truncate text-[14px] font-semibold text-soy">{partnerChoice?.name || '还没选'}</p>
+                      <p className="text-[10px] text-stone-400">{partnerChoice?.kindHint || partnerChoice?.kind || ''}</p>
+                    </div>
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">今日已吃</p>
+                      <p className="mt-1 text-[18px] font-semibold leading-none text-soy">{todayEaten.length}</p>
+                      <p className="text-[10px] text-stone-400">道</p>
+                    </div>
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">收藏</p>
+                      <p className="mt-1 text-[18px] font-semibold leading-none text-peach">{favorites.length}</p>
+                      <p className="text-[10px] text-stone-400">个</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">今日推荐</p>
+                      <p className="mt-1 truncate text-[14px] font-semibold text-soy">{result ? result.name : randomPreview.name}</p>
+                      <p className="text-[10px] text-stone-400">{result ? (result.kindHint || result.kind) : randomPreview.kind}</p>
+                    </div>
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">今日已吃</p>
+                      <p className="mt-1 text-[18px] font-semibold leading-none text-soy">{todayEaten.length}</p>
+                      <p className="text-[10px] text-stone-400">道</p>
+                    </div>
+                    <div className="rounded-[18px] bg-cream-50 px-2 py-3 text-center">
+                      <p className="text-[11px] text-stone-500">收藏</p>
+                      <p className="mt-1 text-[18px] font-semibold leading-none text-peach">{favorites.length}</p>
+                      <p className="text-[10px] text-stone-400">个</p>
+                    </div>
+                  </div>
+                )}
+                {isConsensus ? (
+                  <button
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-soy px-3 py-2.5 text-[13px] font-medium text-white transition active:scale-[0.98]"
+                    onClick={async () => {
+                      const shareText = `我们都想吃 ${myChoice.name}！🎉`;
+                      const shareUrl = 'https://igxshan.serv00.net/';
+                      if (navigator.share) {
+                        try { await navigator.share({ title: '今天吃啥', text: shareText, url: shareUrl }); } catch { /* ignore */ }
+                      } else {
+                        copyText(`${shareText}\n${shareUrl}`, '已复制到剪贴板');
+                      }
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" /> 晒共识
+                  </button>
+                ) : coupleInfo?.partnerJoined && myChoice ? (
+                  <button
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-tomato px-3 py-2.5 text-[13px] font-medium text-white transition active:scale-[0.98]"
+                    onClick={() => {
+                      setMyNudge({ ts: Date.now(), kind: 'poke' });
+                      pokePartner(coupleId).catch(() => {});
+                    }}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" /> 戳一下Ta
+                  </button>
+                ) : coupleInfo?.code && !coupleInfo.partnerJoined ? (
+                  <button
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-soy px-3 py-2.5 text-[13px] font-medium text-white transition active:scale-[0.98]"
+                    onClick={async () => {
+                      const shareText = `一起来今天吃啥吧！邀请码 ${coupleInfo.code}`;
+                      const shareUrl = `https://igxshan.serv00.net/?invite=${coupleInfo.code}`;
+                      if (navigator.share) {
+                        try { await navigator.share({ title: '今天吃啥', text: shareText, url: shareUrl }); } catch { /* ignore */ }
+                      } else {
+                        copyText(`${shareText}\n${shareUrl}`, '已复制到剪贴板');
+                      }
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" /> 邀请Ta
+                  </button>
+                ) : (
+                  <button
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-soy px-3 py-2.5 text-[13px] font-medium text-white transition active:scale-[0.98]"
+                    onClick={async () => {
+                      const shareText = `今天吃啥 | ${dayStamp()}\n${quote}\n推荐：${result ? `${result.name} · ${result.kindHint || result.kind}` : `${randomPreview.name} · ${randomPreview.kind}`}`;
+                      const shareUrl = 'https://igxshan.serv00.net/';
+                      if (navigator.share) {
+                        try { await navigator.share({ title: '今天吃啥', text: shareText, url: shareUrl }); } catch { /* ignore */ }
+                      } else {
+                        copyText(`${shareText}\n${shareUrl}`, '已复制到剪贴板');
+                      }
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" /> 分享给Ta
+                  </button>
+                )}
                 {copyHint ? <p className="mt-2 text-center text-[12px] text-mint">{copyHint}</p> : null}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {couplePrompts.map((item, idx) => (

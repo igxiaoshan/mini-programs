@@ -4,6 +4,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import webpush from 'web-push';
 
 dotenv.config();
 
@@ -41,6 +42,34 @@ const coupleSchema = new mongoose.Schema(
 );
 
 const Couple = mongoose.model('Couple', coupleSchema);
+
+const pushSubscriptionSchema = new mongoose.Schema(
+  {
+    clientId: { type: String, required: true, index: true },
+    coupleId: { type: String, index: true },
+    endpoint: { type: String, required: true },
+    keys: {
+      p256dh: { type: String, required: true },
+      auth: { type: String, required: true },
+    },
+  },
+  { timestamps: true },
+);
+
+pushSubscriptionSchema.index({ clientId: 1, endpoint: 1 }, { unique: true });
+
+const PushSubscription = mongoose.model('PushSubscription', pushSubscriptionSchema);
+
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || '';
+const vapidContact = process.env.VAPID_CONTACT || 'mailto:owner@example.com';
+const vapidConfigured = Boolean(vapidPublicKey && vapidPrivateKey);
+if (vapidConfigured) {
+  webpush.setVapidDetails(vapidContact, vapidPublicKey, vapidPrivateKey);
+}
+
+const pokeRateLimit = new Map();
+const POKE_INTERVAL_MS = 30_000;
 
 const nearbyCategories = new Map([
   ['main', '正餐'],
@@ -314,6 +343,71 @@ api.put('/couple-state/:coupleId/:key', async (req, res) => {
     { new: true, upsert: true, setDefaultsOnInsert: true },
   ).lean();
   return res.json(doc);
+});
+
+api.get('/push/vapid-public-key', (_req, res) => {
+  if (!vapidConfigured) return res.status(503).json({ error: 'Push is not configured' });
+  return res.json({ publicKey: vapidPublicKey });
+});
+
+api.post('/push/subscribe', async (req, res) => {
+  const { clientId, coupleId, subscription } = req.body || {};
+  if (!clientId || !subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+    return res.status(400).json({ error: 'clientId and complete subscription are required' });
+  }
+  await PushSubscription.findOneAndUpdate(
+    { clientId, endpoint: subscription.endpoint },
+    {
+      $set: {
+        clientId,
+        coupleId: coupleId || null,
+        endpoint: subscription.endpoint,
+        keys: { p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
+      },
+    },
+    { upsert: true, setDefaultsOnInsert: true },
+  );
+  return res.json({ ok: true });
+});
+
+api.post('/push/poke', async (req, res) => {
+  if (!vapidConfigured) return res.status(503).json({ error: 'Push is not configured' });
+  const { coupleId, fromClientId } = req.body || {};
+  if (!coupleId || !fromClientId) return res.status(400).json({ error: 'coupleId and fromClientId are required' });
+
+  const last = pokeRateLimit.get(coupleId) || 0;
+  const now = Date.now();
+  if (now - last < POKE_INTERVAL_MS) {
+    return res.status(429).json({ error: 'Too frequent', retryAfter: Math.ceil((POKE_INTERVAL_MS - (now - last)) / 1000) });
+  }
+  pokeRateLimit.set(coupleId, now);
+
+  const couple = await Couple.findOne({ coupleId });
+  if (!couple) return res.status(404).json({ error: 'Couple not found' });
+  const partnerId = couple.member1 === fromClientId ? couple.member2 : couple.member1;
+  if (!partnerId) return res.status(404).json({ error: 'Partner not joined' });
+
+  const subs = await PushSubscription.find({ clientId: partnerId });
+  if (!subs.length) return res.json({ ok: true, sent: 0 });
+
+  const payload = JSON.stringify({ title: 'Ta在催你了', body: '快来选今天吃啥', url: '/' });
+  const expired = [];
+  let sent = 0;
+  await Promise.all(subs.map(async (sub) => {
+    try {
+      await webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: sub.keys },
+        payload,
+      );
+      sent += 1;
+    } catch (error) {
+      if (error?.statusCode === 410 || error?.statusCode === 404) {
+        expired.push(sub._id);
+      }
+    }
+  }));
+  if (expired.length) await PushSubscription.deleteMany({ _id: { $in: expired } });
+  return res.json({ ok: true, sent });
 });
 
 app.use('/api', api);
